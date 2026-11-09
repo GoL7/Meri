@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>אזור אישי | סטודיו מרי</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.auth{max-width:480px;margin:0 auto}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tabs button{flex:1;padding:12px;border:2px solid var(--blue);background:#fff;color:var(--blue);border-radius:40px;font:inherit;font-weight:700;cursor:pointer}
+.tabs button.on{background:var(--blue);color:#fff}
+.err{color:#c0262d;font-weight:600;min-height:1.4em}
+.item{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eef3f9}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <a class="logo" href="index.html">מרי<span>.</span></a>
+    <button class="burger" aria-label="תפריט" onclick="document.body.classList.toggle('open')"><i></i><i></i><i></i></button>
+    <nav><a href="index.html">בית</a><a href="classes.html">שיעורים</a><a href="pricing.html">מחירים</a><a href="about.html">אודות</a><a href="contact.html">צור קשר</a><a href="account.html" class="on">האזור שלי</a></nav>
+    <a class="btn btn-y sm" href="contact.html">שיעור ניסיון</a>
+  </div>
+</header>
+<main>
+<section class="phead"><div class="wrap"><h1>האזור האישי</h1><p>התחברו כדי לנהל את הפרטים והשיעורים שלכם</p></div></section>
+<section class="sec"><div class="wrap">
+
+<div class="auth card" id="guest">
+  <div class="tabs"><button class="on" data-t="login">התחברות</button><button data-t="reg">הרשמה</button></div>
+  <form class="form" id="login">
+    <label>אימייל<input required type="email" name="email" autocomplete="email"></label>
+    <label>סיסמה<input required type="password" name="pw" autocomplete="current-password"></label>
+    <div class="err"></div>
+    <button class="btn btn-y">התחברות</button>
+  </form>
+  <form class="form" id="reg" hidden>
+    <label>שם מלא<input required name="name" autocomplete="name"></label>
+    <label>טלפון<input required type="tel" name="phone" autocomplete="tel"></label>
+    <label>אימייל<input required type="email" name="email" autocomplete="email"></label>
+    <label>סיסמה (לפחות 6 תווים)<input required minlength="6" type="password" name="pw" autocomplete="new-password"></label>
+    <div class="err"></div>
+    <button class="btn btn-y">יצירת חשבון</button>
+  </form>
+</div>
+
+<div id="user" hidden>
+  <div class="grid2">
+    <div class="card"><div class="av" id="av"></div><h3 id="hi" style="text-align:center"></h3>
+      <p id="meta" style="text-align:center;color:var(--mute)"></p>
+      <p style="text-align:center;margin-top:16px"><button class="btn btn-o sm" id="out">התנתקות</button></p></div>
+    <div class="card"><h3>השיעורים שלי</h3>
+      <form class="form" id="add" style="grid-template-columns:1fr auto;align-items:end">
+        <label>הוסיפו שיעור<select name="c"><option>בלט</option><option>עכשווי</option><option>ג׳אז</option><option>היפ הופ</option><option>מבוגרים</option></select></label>
+        <button class="btn btn-y sm">הוספה</button>
+      </form>
+      <div id="list"></div></div>
+  </div>
+</div>
+
+</div></section>
+</main>
+<footer><div class="wrap copy">© 2026 סטודיו מרי. כל הזכויות שמורות.</div></footer>
+<script>
+const $=s=>document.querySelector(s);
+const get=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const users=()=>get('meri_users')||{};
+function show(){
+  const e=localStorage.getItem('meri_cur'),u=e&&users()[e];
+  $('#guest').hidden=!!u;$('#user').hidden=!u;
+  if(!u)return;
+  $('#av').textContent=u.name[0];$('#hi').textContent='שלום, '+u.name;
+  $('#meta').textContent=u.email+' · '+u.phone;
+  $('#list').innerHTML=u.classes.length?u.classes.map((c,i)=>`<div class="item"><span>${c}</span><a href="#" data-i="${i}">הסרה</a></div>`).join(''):'<p style="color:var(--mute)">עדיין לא נרשמתם לשיעורים.</p>';
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $('#login').hidden=b.dataset.t!=='login';$('#reg').hidden=b.dataset.t!=='reg';
+});
+$('#reg').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),m=f.get('email').toLowerCase(),all=users();
+  if(all[m]){e.target.querySelector('.err').textContent='האימייל כבר רשום';return}
+  all[m]={name:f.get('name'),phone:f.get('phone'),email:m,pw:f.get('pw'),classes:[]};
+  set('meri_users',all);localStorage.setItem('meri_cur',m);show()};
+$('#login').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),m=f.get('email').toLowerCase(),u=users()[m];
+  if(!u||u.pw!==f.get('pw')){e.target.querySelector('.err').textContent='אימייל או סיסמה שגויים';return}
+  localStorage.setItem('meri_cur',m);show()};
+$('#out').onclick=()=>{localStorage.removeItem('meri_cur');show()};
+$('#add').onsubmit=e=>{e.preventDefault();const all=users(),m=localStorage.getItem('meri_cur'),c=new FormData(e.target).get('c');
+  if(!all[m].classes.includes(c))all[m].classes.push(c);set('meri_users',all);show()};
+$('#list').onclick=e=>{const i=e.target.dataset.i;if(i==null)return;e.preventDefault();
+  const all=users(),m=localStorage.getItem('meri_cur');all[m].classes.splice(i,1);set('meri_users',all);show()};
+show();
+</script>
+</body>
+</html>
